@@ -393,6 +393,7 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
 
     let _gameStartTime, _gameStartDatetime;
     let _progressUpdateTimer; // 进度条更新计时器
+    let _blockPositionMonitor; // 方块位置监控计时器
 
     // 背景图片列表
     const backgroundImages = [
@@ -525,6 +526,12 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             _progressUpdateTimer = null;
         }
         
+        // 清理方块位置监控计时器
+        if (_blockPositionMonitor) {
+            clearInterval(_blockPositionMonitor);
+            _blockPositionMonitor = null;
+        }
+        
         // 重置所有游戏状态
         _gameBBList = [];
         _gameBBListIndex = 0;
@@ -576,6 +583,9 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         if (mode === MODE_NORMAL) {
             _progressUpdateTimer = setInterval(updateProgressBar, 30); // 30ms = 0.03s
         }
+        
+        // 启动方块位置监控计时器（每100ms检查一次）
+        _blockPositionMonitor = setInterval(monitorCurrentBlockPosition, 100);
         
         // 调试：显示当前音符序列
         debugNoteSequence();
@@ -683,6 +693,12 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         if (_progressUpdateTimer) {
             clearInterval(_progressUpdateTimer);
             _progressUpdateTimer = null;
+        }
+        
+        // 清理方块位置监控计时器
+        if (_blockPositionMonitor) {
+            clearInterval(_blockPositionMonitor);
+            _blockPositionMonitor = null;
         }
         
         let cps = getCPS();
@@ -897,16 +913,125 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         return position;
     }
 
-    function gameLayerMoveNextRow() {
+    // 监控当前方块位置并自动调整界面
+    function monitorCurrentBlockPosition() {
+        if (!_gameStart || _gameOver || _gameBBListIndex >= _gameBBList.length) {
+            return;
+        }
+        
+        const currentNote = _gameBBList[_gameBBListIndex];
+        if (!currentNote) return;
+        
+        const currentElement = document.getElementById(currentNote.id);
+        if (!currentElement) return;
+        
+        // 获取方块位置
+        const rect = currentElement.getBoundingClientRect();
+        const gameAreaRect = GameLayerBG.getBoundingClientRect();
+        const relativeTop = rect.top - gameAreaRect.top;
+        
+        // 定义理想的方块位置（距离底部2-3个方块的位置）
+        const idealMinPosition = window.innerHeight - blockSize * 4;
+        const idealMaxPosition = window.innerHeight - blockSize * 2;
+        
+        // 如果方块位置不在理想范围内，触发平滑调整
+        if (relativeTop < idealMinPosition || relativeTop > idealMaxPosition) {
+            smoothAdjustGameLayer();
+        }
+    }
+    
+    // 平滑调整游戏层位置
+    function smoothAdjustGameLayer() {
+        const currentNote = _gameBBList[_gameBBListIndex];
+        if (!currentNote) return;
+        
+        const currentElement = document.getElementById(currentNote.id);
+        if (!currentElement) return;
+        
+        const rect = currentElement.getBoundingClientRect();
+        const gameAreaRect = GameLayerBG.getBoundingClientRect();
+        const relativeTop = rect.top - gameAreaRect.top;
+        
+        // 计算目标位置
+        const targetPosition = window.innerHeight - blockSize * 2.5;
+        const adjustDistance = targetPosition - relativeTop;
+        
+        // 应用平滑调整
         for (let i = 0; i < GameLayer.length; i++) {
             let g = GameLayer[i];
-            g.y += blockSize;
+            
+            // 设置平滑过渡
+            g.style[transitionDuration] = '500ms';
+            g.style.transitionTimingFunction = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            
+            // 调整位置
+            g.y += adjustDistance;
+            g.style[transform] = 'translate3D(0,' + g.y + 'px,0)';
+        }
+        
+        // 重置过渡效果
+        setTimeout(() => {
+            for (let i = 0; i < GameLayer.length; i++) {
+                GameLayer[i].style[transitionDuration] = '150ms';
+                GameLayer[i].style.transitionTimingFunction = '';
+            }
+        }, 500);
+    }
+
+    function gameLayerMoveNextRow() {
+        // 获取当前需要按的方块信息
+        const currentNote = _gameBBList[_gameBBListIndex];
+        if (!currentNote) return;
+        
+        // 计算当前方块的屏幕位置
+        const currentElement = document.getElementById(currentNote.id);
+        if (!currentElement) return;
+        
+        // 获取方块相对于游戏区域的位置
+        const rect = currentElement.getBoundingClientRect();
+        const gameAreaRect = GameLayerBG.getBoundingClientRect();
+        const relativeTop = rect.top - gameAreaRect.top;
+        
+        // 计算目标位置（让当前方块保持在屏幕下方的可见区域）
+        const targetPosition = window.innerHeight - blockSize * 2; // 距离底部2个方块的位置
+        const currentPosition = relativeTop;
+        
+        // 计算需要移动的距离
+        let moveDistance = blockSize; // 默认移动一个方块的距离
+        
+        // 如果当前方块太靠上，增加移动距离
+        if (currentPosition < targetPosition - blockSize * 2) {
+            moveDistance = blockSize * 1.5; // 加速移动
+        }
+        // 如果当前方块太靠下，减少移动距离
+        else if (currentPosition > targetPosition) {
+            moveDistance = blockSize * 0.5; // 减速移动
+        }
+        
+        // 应用弹性移动效果
+        for (let i = 0; i < GameLayer.length; i++) {
+            let g = GameLayer[i];
+            
+            // 设置过渡动画
+            g.style[transitionDuration] = '300ms';
+            g.style.transitionTimingFunction = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // 弹性缓动
+            
+            g.y += moveDistance;
+            
             if (g.y > blockSize * (Math.floor(g.children.length / 4))) {
                 refreshGameLayer(g, 1, -1);
             } else {
                 g.style[transform] = 'translate3D(0,' + g.y + 'px,0)';
             }
         }
+        
+        // 重置过渡动画（避免影响其他操作）
+        setTimeout(() => {
+            for (let i = 0; i < GameLayer.length; i++) {
+                GameLayer[i].style[transitionDuration] = '150ms';
+                GameLayer[i].style.transitionTimingFunction = '';
+            }
+        }, 300);
     }
 
     function gameTapEvent(e) {
