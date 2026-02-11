@@ -1,9 +1,9 @@
 # 吃掉小艾玛
 ![image1](2698ec4efcd38960a649f90cc9fe38b7.jpg)
 -----------------
-感谢 (`吃掉小鹿乃`)[https://github.com/arcxingye/EatKano] 开源。本游戏是基于这个项目进行了“魔女化”的结果。具体为：
+感谢 [`吃掉小鹿乃`](https://github.com/arcxingye/EatKano) 开源。本游戏是基于这个项目进行了“魔女化”的结果。具体为：
 
-* 使用了黑金色色调的UI，这个UI在上一个项目(魔法少女的魔女前夜)[https://dzycd.github.io/SortingVoice/] 有用到
+* 使用了黑金色色调的UI，这个UI在上一个项目[魔法少女的魔女前夜](https://dzycd.github.io/SortingVoice/) 有用到
 * 更新了部分显示，替换了几个进度条
 * 优化了设置界面的选择，将时间改为滑块、添加了预置可替换的图片素材
 * 修改了音符生成逻辑，添加“楼梯模式”和“纵连模式”两种生成逻辑
