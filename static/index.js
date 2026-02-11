@@ -1535,6 +1535,13 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         $('#score').text(scoreToString(score));
         $('#GameScoreLayer-score').css('display', mode === MODE_ENDLESS ? 'none' : '');
         $('#best').text(scoreToString(best));
+        
+        // 控制分享按钮显示：练习模式隐藏，其他模式显示
+        if (mode === MODE_PRACTICE) {
+            $('#share-btn').hide();
+        } else {
+            $('#share-btn').show();
+        }
 
         l.css('display', 'block');
     }
@@ -1558,6 +1565,90 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         gameRestart();
         hideGameScoreLayer();
         showWelcomeLayer();
+    }
+    
+    // 分享游戏结果
+    w.shareResult = function() {
+        const cps = getCPS();
+        let shareText = '';
+        
+        if (mode === MODE_NORMAL) {
+            // 普通模式：我在**秒内吃掉了***个艾玛，每秒钟吃掉了**（CPS）个艾玛！
+            const gameTime = _gameSettingNum;
+            shareText = `我在${gameTime}秒内吃掉了${_gameScore}个艾玛，每秒钟吃掉了${cps.toFixed(2)}（CPS）个艾玛！你也来试试吧！https://dzycd.github.io/EatEma/`;
+        } else if (mode === MODE_ENDLESS) {
+            // 无尽模式：我在吃掉了***个艾玛，每秒钟吃掉了**（CPS）个艾玛！
+            shareText = `我吃掉了${_gameScore}个艾玛，每秒钟吃掉了${cps.toFixed(2)}（CPS）个艾玛！你也来试试吧！https://dzycd.github.io/EatEma/`;
+        } else {
+            // 练习模式不显示分享按钮，但以防万一
+            shareText = `我在练习模式中吃掉了${_gameScore}个艾玛！你也来试试吧！https://dzycd.github.io/EatEma/`;
+        }
+        
+        // 复制到剪贴板
+        copyToClipboard(shareText);
+    }
+    
+    // 复制文本到剪贴板
+    function copyToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            // 现代浏览器的异步剪贴板API
+            navigator.clipboard.writeText(text).then(() => {
+                showCopySuccess();
+            }).catch(() => {
+                fallbackCopyTextToClipboard(text);
+            });
+        } else {
+            // 降级方案
+            fallbackCopyTextToClipboard(text);
+        }
+    }
+    
+    // 降级复制方案
+    function fallbackCopyTextToClipboard(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        
+        // 避免在iOS上出现缩放
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                showCopySuccess();
+            } else {
+                showCopyError();
+            }
+        } catch (err) {
+            showCopyError();
+        }
+        
+        document.body.removeChild(textArea);
+    }
+    
+    // 显示复制成功提示
+    function showCopySuccess() {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'copy-success';
+        successDiv.textContent = '✅ 成绩已复制到剪贴板！';
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            if (successDiv.parentNode) {
+                successDiv.parentNode.removeChild(successDiv);
+            }
+        }, 2000);
+    }
+    
+    // 显示复制失败提示
+    function showCopyError() {
+        alert('复制失败，请手动复制分享内容');
     }
 
     function shareText(cps) {
