@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <title>加载进度条演示</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, width=device-width,target-densitydpi=device-dpi" />
+    <link href="./static/index.css?v=2.1" rel="stylesheet" type="text/css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .demo-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 10000;
+        }
+        .demo-controls button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 8px 12px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .demo-controls button:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 左上角导航按钮 -->
+<div id="nav-buttons" class="nav-buttons">
+    <a href="https://github.com/DZYCD/EatEma" target="_blank" class="nav-btn github-btn" title="GitHub 源码">
+        <svg viewBox="0 0 24 24" class="nav-icon">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+    </a>
+    <a href="http://47.100.11.98" target="_blank" class="nav-btn home-btn" title="主页">
+        <svg viewBox="0 0 24 24" class="nav-icon">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+    </a>
+    <a href="https://space.bilibili.com/288927312" target="_blank" class="nav-btn bilibili-btn" title="Bilibili">
+        <svg viewBox="0 0 24 24" class="nav-icon">
+            <path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .356-.124.657-.373.906l-1.174 1.12zM7.333 11.2c-.746 0-1.333.587-1.333 1.333v1.334c0 .746.587 1.333 1.333 1.333s1.333-.587 1.333-1.333V12.533c0-.746-.587-1.333-1.333-1.333zm9.334 0c-.746 0-1.334.587-1.334 1.333v1.334c0 .746.588 1.333 1.334 1.333.746 0 1.333-.587 1.333-1.333V12.533c0-.746-.587-1.333-1.333-1.333z"/>
+        </svg>
+    </a>
+</div>
+
+<!-- 加载进度条演示 -->
+<div id="loading-overlay" class="loading-overlay">
+    <div class="loading-container">
+        <div class="loading-logo">
+            <div class="loading-emoji">
+                <img src="./static/image/loader.png" alt="Loading" class="loader-emoji">
+            </div>
+            <div class="loading-title">吃掉小艾玛</div>
+        </div>
+        <div class="loading-progress">
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+            <div class="loading-text" id="loading-text">好吃的艾玛正在降临...</div>
+            <div class="loading-percentage" id="loading-percentage">0%</div>
+        </div>
+        <div class="loading-dots">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+</div>
+
+<div class="demo-controls">
+    <h3>加载进度条演示</h3>
+    <button onclick="simulateLoading()">模拟完整加载</button>
+    <button onclick="resetLoading()">重置进度条</button>
+    <button onclick="setProgress(25)">设置 25%</button>
+    <button onclick="setProgress(50)">设置 50%</button>
+    <button onclick="setProgress(75)">设置 75%</button>
+    <button onclick="setProgress(100)">设置 100%</button>
+</div>
+
+<div style="margin-top: 100px;">
+    <h1>加载进度条功能演示</h1>
+    <p>这个演示展示了新的加载进度条功能：</p>
+    <ul>
+        <li>✨ 华丽的暗金色主题设计</li>
+        <li>📊 实时进度显示</li>
+        <li>💫 流光动画效果</li>
+        <li>🎯 分步骤加载提示</li>
+        <li>📱 响应式设计</li>
+    </ul>
+</div>
+
+<script>
+let currentProgress = 0;
+
+function updateProgress(progress, text = '加载中...') {
+    currentProgress = Math.min(progress, 100);
+    
+    const progressFill = document.getElementById('progress-fill');
+    const loadingText = document.getElementById('loading-text');
+    const loadingPercentage = document.getElementById('loading-percentage');
+    const overlay = document.getElementById('loading-overlay');
+    
+    if (progressFill) {
+        progressFill.style.width = currentProgress + '%';
+    }
+    
+    if (loadingPercentage) {
+        loadingPercentage.textContent = Math.round(currentProgress) + '%';
+    }
+    
+    if (loadingText) {
+        loadingText.textContent = text;
+    }
+    
+    // 显示加载覆盖层
+    if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.classList.remove('fade-out');
+    }
+    
+    // 加载完成后隐藏
+    if (currentProgress >= 100) {
+        setTimeout(() => {
+            if (overlay) {
+                overlay.classList.add('fade-out');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    // 显示导航按钮
+                    const navButtons = document.getElementById('nav-buttons');
+                    if (navButtons) {
+                        navButtons.style.animation = 'navFadeIn 0.8s ease-out forwards';
+                    }
+                }, 800);
+            }
+        }, 1000);
+    }
+}
+
+function setProgress(progress) {
+    updateProgress(progress, `进度设置为 ${progress}%`);
+}
+
+function resetLoading() {
+    currentProgress = 0;
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.classList.remove('fade-out');
+    }
+    updateProgress(0, '好吃的艾玛正在降临...');
+}
+
+function simulateLoading() {
+    const steps = [
+        { progress: 0, text: '好吃的艾玛正在降临...', delay: 0 },
+        { progress: 20, text: '艾玛正在准备美味...', delay: 500 },
+        { progress: 35, text: '艾玛正在调音...', delay: 800 },
+        { progress: 50, text: '艾玛正在学习语言...', delay: 1200 },
+        { progress: 70, text: '艾玛即将到达...', delay: 1600 },
+        { progress: 90, text: '艾玛正在最后准备...', delay: 2000 },
+        { progress: 100, text: '艾玛已经准备好了！', delay: 2500 }
+    ];
+    
+    steps.forEach(step => {
+        setTimeout(() => {
+            updateProgress(step.progress, step.text);
+        }, step.delay);
+    });
+}
+
+// 页面加载时自动开始演示
+window.addEventListener('load', () => {
+    setTimeout(simulateLoading, 500);
+});
+</script>
+
+</body>
+</html>

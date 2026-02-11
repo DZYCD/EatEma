@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <title>魔法少女按钮测试</title>
+    <meta charset="utf-8" />
+    <link href="./static/index.css?v=2.1" rel="stylesheet" type="text/css">
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            min-height: 100vh;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .button-showcase {
+            background: rgba(20, 15, 10, 0.85);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 2px solid var(--gold-dark);
+        }
+        .comparison-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .btn-group-vertical {
+            gap: 10px;
+        }
+        .description {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid var(--gold-light);
+        }
+    </style>
+</head>
+<body>
+
+<div class="test-container">
+    <h1>🎭 魔法少女按钮测试</h1>
+    
+    <div class="description">
+        <p>这里展示了游戏结束卡片中新的魔法少女按钮效果。原来的文字按钮已被替换为使用 <code>witchtrail.png</code> 图片的按钮。</p>
+    </div>
+
+    <div class="button-showcase">
+        <h2>游戏结束卡片按钮组</h2>
+        <p>模拟游戏结束时的按钮布局：</p>
+        
+        <div class="comparison-row">
+            <button type="button" class="btn btn-secondary btn-lg">AGAIN</button>
+            <button type="button" class="btn btn-secondary btn-lg">BACK</button>
+            <button type="button" class="btn btn-image-btn witchtrail-btn">
+                <img src="./static/image/witchtrail.png" alt="魔法少女审判前夜" class="btn-image">
+            </button>
+        </div>
+    </div>
+
+    <div class="button-showcase">
+        <h2>按钮效果对比</h2>
+        
+        <div class="comparison-row">
+            <div>
+                <h4>原始文字按钮</h4>
+                <button type="button" class="btn btn-secondary btn-lg">ISOM</button>
+            </div>
+            
+            <div>
+                <h4>新的图片按钮</h4>
+                <button type="button" class="btn btn-image-btn witchtrail-btn">
+                    <img src="./static/image/witchtrail.png" alt="魔法少女审判前夜" class="btn-image">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="button-showcase">
+        <h2>不同尺寸测试</h2>
+        
+        <div class="comparison-row">
+            <button type="button" class="btn btn-image-btn witchtrail-btn" style="height: 60px; min-width: 150px;">
+                <img src="./static/image/witchtrail.png" alt="大尺寸" class="btn-image" style="max-height: 40px;">
+            </button>
+            
+            <button type="button" class="btn btn-image-btn witchtrail-btn">
+                <img src="./static/image/witchtrail.png" alt="标准尺寸" class="btn-image">
+            </button>
+            
+            <button type="button" class="btn btn-image-btn witchtrail-btn" style="height: 36px; min-width: 80px;">
+                <img src="./static/image/witchtrail.png" alt="小尺寸" class="btn-image" style="max-height: 20px;">
+            </button>
+        </div>
+    </div>
+
+    <div class="description">
+        <h3>✨ 按钮特性</h3>
+        <ul style="text-align: left; max-width: 600px; margin: 0 auto;">
+            <li><strong>暗金主题</strong> - 与游戏整体风格保持一致</li>
+            <li><strong>白色图片适配</strong> - 为白色图片添加了合适的背景和阴影</li>
+            <li><strong>紫色魔法光效</strong> - 悬停时显示魔法少女主题的紫色光晕</li>
+            <li><strong>流光动画</strong> - 悬停时有光线扫过效果</li>
+            <li><strong>响应式设计</strong> - 在不同屏幕尺寸下自适应</li>
+            <li><strong>平滑过渡</strong> - 所有动画都有流畅的过渡效果</li>
+        </ul>
+    </div>
+
+    <div class="description">
+        <h3>🎮 使用说明</h3>
+        <p>在游戏结束时，玩家会看到三个按钮：</p>
+        <ul style="text-align: left; max-width: 600px; margin: 0 auto;">
+            <li><strong>AGAIN</strong> - 重新开始游戏</li>
+            <li><strong>BACK</strong> - 返回主菜单</li>
+            <li><strong>魔法少女图片按钮</strong> - 跳转到魔法少女审判前夜 (https://dzycd.github.io/SortingVoice/)</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+// 添加点击测试功能
+document.querySelectorAll('.witchtrail-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        alert('魔法少女按钮被点击了！\n实际游戏中会跳转到: https://dzycd.github.io/SortingVoice/');
+    });
+});
+
+// 图片加载检测
+document.querySelectorAll('.btn-image').forEach((img, index) => {
+    img.onload = function() {
+        console.log(`图片 ${index + 1} 加载成功`);
+    };
+    img.onerror = function() {
+        console.error(`图片 ${index + 1} 加载失败`);
+        this.style.border = '2px solid red';
+        this.alt = '图片加载失败';
+    };
+});
+</script>
+
+</body>
+</html>

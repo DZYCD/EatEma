@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <title>金光脉冲效果测试</title>
+    <meta charset="utf-8" />
+    <link href="./static/index.css?v=2.1" rel="stylesheet" type="text/css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .control-panel {
+            background: rgba(20, 15, 10, 0.85);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 2px solid var(--gold-dark);
+        }
+        .test-btn {
+            background: var(--gold-dark);
+            color: white;
+            border: 2px solid var(--gold-light);
+            padding: 12px 24px;
+            margin: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        .test-btn:hover {
+            background: var(--gold-light);
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+        }
+        .info-box {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #d4af37;
+            text-align: left;
+        }
+        .combo-counter {
+            font-size: 2em;
+            color: var(--gold-light);
+            margin: 20px 0;
+            text-shadow: 0 0 10px var(--gold-glow);
+        }
+        .milestone-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .milestone {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--gold-dark);
+        }
+        .milestone.reached {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--gold-light);
+        }
+    </style>
+</head>
+<body>
+
+<!-- 金光脉冲效果 -->
+<div id="golden-pulse" class="golden-pulse">
+    <div class="pulse-wave pulse-wave-1"></div>
+    <div class="pulse-wave pulse-wave-2"></div>
+    <div class="pulse-wave pulse-wave-3"></div>
+    <div class="pulse-text">50 COMBO!</div>
+</div>
+
+<div class="test-container">
+    <h1>✨ 金光脉冲效果测试</h1>
+    
+    <div class="combo-counter">
+        当前分数: <span id="score-display">0</span>
+    </div>
+    
+    <div class="control-panel">
+        <h2>🎮 测试控制</h2>
+        <button class="test-btn" onclick="testPulse(50)">测试 50 Combo</button>
+        <button class="test-btn" onclick="testPulse(100)">测试 100 Combo</button>
+        <button class="test-btn" onclick="testPulse(150)">测试 150 Combo</button>
+        <button class="test-btn" onclick="testPulse(200)">测试 200 Combo</button>
+        <br>
+        <button class="test-btn" onclick="simulateGame()">模拟游戏进程</button>
+        <button class="test-btn" onclick="resetTest()">重置测试</button>
+    </div>
+
+    <div class="control-panel">
+        <h2>🏆 Combo里程碑</h2>
+        <div class="milestone-list" id="milestone-list">
+            <div class="milestone" data-milestone="50">50</div>
+            <div class="milestone" data-milestone="100">100</div>
+            <div class="milestone" data-milestone="150">150</div>
+            <div class="milestone" data-milestone="200">200</div>
+            <div class="milestone" data-milestone="250">250</div>
+            <div class="milestone" data-milestone="300">300</div>
+            <div class="milestone" data-milestone="350">350</div>
+            <div class="milestone" data-milestone="400">400</div>
+            <div class="milestone" data-milestone="450">450</div>
+            <div class="milestone" data-milestone="500">500</div>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <h3>✨ 效果特性</h3>
+        <ul>
+            <li><strong>三层波浪</strong> - 不同透明度和延迟的金光波浪</li>
+            <li><strong>渐变颜色</strong> - 从金色到亮黄色的渐变效果</li>
+            <li><strong>动态文字</strong> - 显示当前combo数量</li>
+            <li><strong>颜色变化</strong> - 根据combo数量改变颜色主题</li>
+            <li><strong>响应式设计</strong> - 适配不同屏幕尺寸</li>
+        </ul>
+    </div>
+
+    <div class="info-box">
+        <h3>🎨 颜色主题</h3>
+        <ul>
+            <li><strong>50-99 Combo</strong> - 金色主题 (#FFD700)</li>
+            <li><strong>100-149 Combo</strong> - 橙色主题 (#FF6B35)</li>
+            <li><strong>150-199 Combo</strong> - 红色主题 (#FF1744)</li>
+            <li><strong>200+ Combo</strong> - 粉色主题 (#E91E63)</li>
+        </ul>
+    </div>
+
+    <div class="info-box">
+        <h3>🎯 触发机制</h3>
+        <p>在实际游戏中，每当玩家达到50的倍数分数时（50, 100, 150, 200...），就会在屏幕顶部触发金光脉冲效果，持续1.5秒。</p>
+    </div>
+</div>
+
+<script>
+let currentScore = 0;
+let lastMilestone = 0;
+
+// 触发金光脉冲效果
+function triggerGoldenPulse(comboCount) {
+    const pulseElement = document.getElementById('golden-pulse');
+    const pulseText = pulseElement.querySelector('.pulse-text');
+    
+    if (!pulseElement || !pulseText) return;
+    
+    // 更新文字内容
+    pulseText.textContent = `${comboCount} COMBO!`;
+    
+    // 根据combo数量设置不同的颜色样式
+    pulseText.className = 'pulse-text';
+    if (comboCount >= 200) {
+        pulseText.classList.add('combo-200');
+    } else if (comboCount >= 150) {
+        pulseText.classList.add('combo-150');
+    } else if (comboCount >= 100) {
+        pulseText.classList.add('combo-100');
+    } else {
+        pulseText.classList.add('combo-50');
+    }
+    
+    // 重置动画
+    pulseElement.classList.remove('active');
+    
+    // 强制重排，确保动画重新开始
+    pulseElement.offsetHeight;
+    
+    // 激活脉冲效果
+    pulseElement.classList.add('active');
+    
+    // 1.5秒后自动隐藏
+    setTimeout(() => {
+        pulseElement.classList.remove('active');
+    }, 1500);
+    
+    // 更新里程碑显示
+    updateMilestoneDisplay(comboCount);
+    
+    console.log(`🎉 触发金光脉冲！Combo: ${comboCount}`);
+}
+
+// 测试特定combo数值
+function testPulse(combo) {
+    currentScore = combo;
+    document.getElementById('score-display').textContent = combo;
+    triggerGoldenPulse(combo);
+}
+
+// 模拟游戏进程
+function simulateGame() {
+    currentScore = 0;
+    lastMilestone = 0;
+    document.getElementById('score-display').textContent = '0';
+    
+    // 重置里程碑显示
+    document.querySelectorAll('.milestone').forEach(m => {
+        m.classList.remove('reached');
+    });
+    
+    // 模拟快速增长到500
+    const interval = setInterval(() => {
+        currentScore += 5;
+        document.getElementById('score-display').textContent = currentScore;
+        
+        // 检查里程碑
+        const milestones = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+        for (let milestone of milestones) {
+            if (currentScore >= milestone && lastMilestone < milestone) {
+                lastMilestone = milestone;
+                triggerGoldenPulse(milestone);
+                break;
+            }
+        }
+        
+        if (currentScore >= 500) {
+            clearInterval(interval);
+        }
+    }, 200);
+}
+
+// 重置测试
+function resetTest() {
+    currentScore = 0;
+    lastMilestone = 0;
+    document.getElementById('score-display').textContent = '0';
+    
+    // 重置里程碑显示
+    document.querySelectorAll('.milestone').forEach(m => {
+        m.classList.remove('reached');
+    });
+    
+    // 隐藏脉冲效果
+    document.getElementById('golden-pulse').classList.remove('active');
+}
+
+// 更新里程碑显示
+function updateMilestoneDisplay(combo) {
+    const milestone = document.querySelector(`[data-milestone="${combo}"]`);
+    if (milestone) {
+        milestone.classList.add('reached');
+    }
+}
+
+// 页面加载时的演示
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        alert('页面加载完成！点击按钮测试金光脉冲效果。');
+    }, 500);
+});
+</script>
+
+</body>
+</html>

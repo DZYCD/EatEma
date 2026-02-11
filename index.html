@@ -8,14 +8,74 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, width=device-width,target-densitydpi=device-dpi" />
     <link href="./static/index.css?v=2.1" rel="stylesheet" type="text/css">
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- 确保 jQuery 首先加载 -->
+    <script src="https://cdn.staticfile.org/jquery/3.6.0/jquery.min.js"></script>
+    
+    <!-- 然后加载依赖 jQuery 的库 -->
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
     <script src="https://passport.cnblogs.com/scripts/jsencrypt.min.js"></script>
-    <link href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.staticfile.org/jquery/3.6.0/jquery.min.js"></script>
 </head>
 
-<body onLoad="init()" oncontextmenu=self.event.returnValue=false>
+<body oncontextmenu=self.event.returnValue=false>
+
+<!-- 左上角导航按钮 -->
+<div id="nav-buttons" class="nav-buttons">
+    <a href="https://github.com/DZYCD/EatEma" target="_blank" class="nav-btn github-btn" title="GitHub 源码">
+        <svg viewBox="0 0 24 24" class="nav-icon">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+    </a>
+    <a href="http://47.100.11.98" target="_blank" class="nav-btn home-btn" title="主页">
+        <svg viewBox="0 0 24 24" class="nav-icon">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+    </a>
+    <a href="https://space.bilibili.com/288927312" target="_blank" class="nav-btn bilibili-btn" title="Bilibili">
+        <svg viewBox="0 0 24 24" class="nav-icon">
+            <path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .356-.124.657-.373.906l-1.174 1.12zM7.333 11.2c-.746 0-1.333.587-1.333 1.333v1.334c0 .746.587 1.333 1.333 1.333s1.333-.587 1.333-1.333V12.533c0-.746-.587-1.333-1.333-1.333zm9.334 0c-.746 0-1.334.587-1.334 1.333v1.334c0 .746.588 1.333 1.334 1.333.746 0 1.333-.587 1.333-1.333V12.533c0-.746-.587-1.333-1.333-1.333z"/>
+        </svg>
+    </a>
+</div>
+
+<!-- 金光脉冲效果 -->
+<div id="golden-pulse" class="golden-pulse">
+    <div class="pulse-wave pulse-wave-1"></div>
+    <div class="pulse-wave pulse-wave-2"></div>
+    <div class="pulse-wave pulse-wave-3"></div>
+    <div class="pulse-text">50 COMBO!</div>
+</div>
+
+<!-- 练习模式退出按钮 -->
+<div id="practice-exit-btn" class="practice-exit-btn" onclick="exitPracticeMode()" title="退出练习模式">
+    <svg viewBox="0 0 24 24" class="exit-icon">
+        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+    </svg>
+</div>
+
+<!-- 初始化加载进度条 -->
+<div id="loading-overlay" class="loading-overlay">
+    <div class="loading-container">
+        <div class="loading-logo">
+            <div class="loading-emoji">
+                <img src="./static/image/loader.png" alt="Loading" class="loader-emoji">
+            </div>
+            <div class="loading-title" data-i18n="game-title">吃掉小艾玛</div>
+        </div>
+        <div class="loading-progress">
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+            <div class="loading-text" id="loading-text">好吃的艾玛正在降临...</div>
+            <div class="loading-percentage" id="loading-percentage">0%</div>
+        </div>
+        <div class="loading-dots">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+</div>
 <div id="GameScoreLayer" class="BBOX SHADE bgc1" style="display:none;">
     <!-- 结算界面顶部图片 -->
     <div class="finish-image-container">
@@ -37,7 +97,9 @@
         </div>
         <button type="button" class="btn btn-secondary btn-lg" id="replay" onclick="replayBtn()" data-i18n="again">AGAIN-I18N</button>
         <button type="button" class="btn btn-secondary btn-lg" onclick="backBtn()" data-i18n="back-title">BACK-TITLE-I18N</button>
-        <button type="button" class="btn btn-secondary btn-lg" onclick="window.location.href='http://47.100.11.98'" data-i18n="isom">ISOM-I18N</button>
+        <button type="button" class="btn btn-image-btn witchtrail-btn" onclick="window.open('https://dzycd.github.io/SortingVoice/', '_blank')">
+            <img src="./static/image/witchtrail.png" alt="魔法少女审判前夜" class="btn-image">
+        </button>
     </div>
 </div>
 </div>
@@ -173,6 +235,38 @@
     </div>
 </div>
 <script src="./static/index.js?v=2.1"></script>
+<script>
+// 确保所有脚本加载完成后再初始化
+$(document).ready(function() {
+    // 模拟一些初始化延迟，让用户能看到进度条
+    setTimeout(function() {
+        // 确保 init 函数存在后再调用
+        if (typeof window.init === 'function') {
+            window.init();
+        } else {
+            // 如果 init 函数还未定义，等待一下再尝试
+            setTimeout(function() {
+                if (typeof window.init === 'function') {
+                    window.init();
+                }
+            }, 100);
+        }
+    }, 200); // 给用户一点时间看到加载动画
+});
+
+// 页面加载时立即显示进度条
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始进度
+    setTimeout(function() {
+        const progressFill = document.getElementById('progress-fill');
+        const loadingText = document.getElementById('loading-text');
+        if (progressFill && loadingText) {
+            progressFill.style.width = '5%';
+            loadingText.textContent = '好吃的艾玛正在降临...';
+        }
+    }, 100);
+});
+</script>
 </body>
 
 </html>

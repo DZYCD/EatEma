@@ -1,6 +1,116 @@
 const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
 
 (function(w) {
+    // 加载进度管理
+    let loadingProgress = 0;
+    const loadingSteps = [
+        { name: 'jQuery', weight: 20 },
+        { name: 'Bootstrap', weight: 15 },
+        { name: 'CreateJS', weight: 15 },
+        { name: 'I18N', weight: 20 },
+        { name: 'GameInit', weight: 20 },
+        { name: 'Complete', weight: 10 }
+    ];
+    
+    // 更新加载进度
+    function updateLoadingProgress(stepName, progress = 100) {
+        const step = loadingSteps.find(s => s.name === stepName);
+        if (!step) return;
+        
+        const stepIndex = loadingSteps.indexOf(step);
+        const prevWeight = loadingSteps.slice(0, stepIndex).reduce((sum, s) => sum + s.weight, 0);
+        const currentProgress = prevWeight + (step.weight * progress / 100);
+        
+        loadingProgress = Math.min(currentProgress, 100);
+        
+        const progressFill = document.getElementById('progress-fill');
+        const loadingText = document.getElementById('loading-text');
+        const loadingPercentage = document.getElementById('loading-percentage');
+        
+        if (progressFill) {
+            progressFill.style.width = loadingProgress + '%';
+        }
+        
+        if (loadingPercentage) {
+            loadingPercentage.textContent = Math.round(loadingProgress) + '%';
+        }
+        
+        if (loadingText) {
+            const messages = {
+                'jQuery': '好吃的艾玛正在降临...',
+                'Bootstrap': '艾玛正在准备美味...',
+                'CreateJS': '艾玛正在调音...',
+                'I18N': '艾玛正在学习语言...',
+                'GameInit': '艾玛即将到达...',
+                'Complete': '艾玛已经准备好了！'
+            };
+            loadingText.textContent = messages[stepName] || '好吃的艾玛正在降临...';
+        }
+        
+        // 加载完成后隐藏进度条
+        if (loadingProgress >= 100) {
+            setTimeout(hideLoadingOverlay, 500);
+        }
+    }
+    
+    // 隐藏加载覆盖层
+    function hideLoadingOverlay() {
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) {
+            overlay.classList.add('fade-out');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                // 加载完成后显示导航按钮
+                showNavButtons();
+            }, 800);
+        }
+    }
+    
+    // 显示导航按钮
+    function showNavButtons() {
+        const navButtons = document.getElementById('nav-buttons');
+        if (navButtons) {
+            navButtons.style.animation = 'navFadeIn 0.8s ease-out forwards';
+        }
+    }
+    
+    // 检查脚本加载状态
+    function checkScriptLoading() {
+        // 检查 jQuery
+        if (typeof $ !== 'undefined') {
+            updateLoadingProgress('jQuery');
+            
+            // 检查 Bootstrap
+            if (typeof bootstrap !== 'undefined') {
+                updateLoadingProgress('Bootstrap');
+            }
+            
+            // 检查 CreateJS
+            if (typeof createjs !== 'undefined') {
+                updateLoadingProgress('CreateJS');
+            }
+        }
+    }
+    
+    // 定期检查加载状态
+    const loadingChecker = setInterval(() => {
+        checkScriptLoading();
+        if (loadingProgress >= 60) { // jQuery, Bootstrap, CreateJS 都加载完成
+            clearInterval(loadingChecker);
+        }
+    }, 100);
+    
+    // 确保 jQuery 已加载的检查函数
+    function waitForJQuery(callback) {
+        if (typeof $ !== 'undefined' && $.fn && $.fn.jquery) {
+            callback();
+        } else {
+            setTimeout(function() {
+                waitForJQuery(callback);
+            }, 50);
+        }
+    }
+    
     function getJsonI18N() {
         // https://developer.mozilla.org/zh-CN/docs/Web/API/Navigator/language
         
@@ -22,18 +132,45 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         }).responseJSON
     }
 
-    const I18N = getJsonI18N()
+    // 初始化国际化功能
+    function initI18N() {
+        waitForJQuery(function() {
+            updateLoadingProgress('I18N', 50);
+            
+            const I18N = getJsonI18N();
+            
+            $('[data-i18n]').each(function() {
+                const content = I18N[this.dataset.i18n];
+                $(this).text(content);
+            });
 
-    $('[data-i18n]').each(function() {
-        const content = I18N[this.dataset.i18n];
-        $(this).text(content);
-    });
+            $('[data-placeholder-i18n]').each(function() {
+                $(this).attr('placeholder', I18N[this.dataset.placeholderI18n]);
+            });
 
-    $('[data-placeholder-i18n]').each(function() {
-        $(this).attr('placeholder', I18N[this.dataset.placeholderI18n]);
-    });
-
-    $('html').attr('lang', I18N['lang']);
+            $('html').attr('lang', I18N['lang']);
+            
+            // 将 I18N 对象暴露给全局作用域
+            w.I18N = I18N;
+            
+            updateLoadingProgress('I18N', 100);
+        });
+    }
+    
+    // 安全的 I18N 访问函数
+    function getI18NText(key, defaultText = key) {
+        if (w.I18N && w.I18N[key]) {
+            return w.I18N[key];
+        }
+        return defaultText;
+    }
+    
+    // 延迟执行国际化初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initI18N);
+    } else {
+        initI18N();
+    }
 
     let isDesktop = !navigator['userAgent'].match(/(ipad|iphone|ipod|android|windows phone)/i);
     let fontunit = isDesktop ? 20 : ((window.innerWidth > window.innerHeight ? window.innerHeight : window.innerWidth) / 320) * 10;
@@ -66,12 +203,18 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
     let currentNotePattern = getNotePattern();
 
     w.init = function() {
+        updateLoadingProgress('GameInit', 10);
+        
         // 设置随机背景
         setRandomBackground();
+        
+        updateLoadingProgress('GameInit', 30);
         
         showWelcomeLayer();
         body = document.getElementById('gameBody') || document.body;
         body.style.height = window.innerHeight + 'px';
+        
+        updateLoadingProgress('GameInit', 50);
         
         // 初始化时间滑块
         setTimeout(() => {
@@ -87,6 +230,9 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         GameLayer.push(document.getElementById('GameLayer2'));
         GameLayer[1].children = GameLayer[1].querySelectorAll('div');
         GameLayerBG = document.getElementById('GameLayerBG');
+        
+        updateLoadingProgress('GameInit', 70);
+        
         if (GameLayerBG.ontouchstart === null) {
             GameLayerBG.ontouchstart = gameTapEvent;
         } else {
@@ -95,10 +241,77 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         gameInit();
         initSetting();
         
+        updateLoadingProgress('GameInit', 90);
+        
         // 初始化按钮动效
         setTimeout(initButtonEffects, 100);
         
         window.addEventListener('resize', refreshSize, false);
+        
+        // 禁止屏幕滚动的事件监听
+        preventScrolling();
+        
+        updateLoadingProgress('GameInit', 100);
+        updateLoadingProgress('Complete', 100);
+    }
+    
+    // 禁止屏幕滚动函数
+    function preventScrolling() {
+        // 禁止滚轮滚动
+        document.addEventListener('wheel', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+        
+        // 禁止键盘滚动（方向键、空格键、Page Up/Down等）
+        document.addEventListener('keydown', function(e) {
+            const scrollKeys = [32, 33, 34, 35, 36, 37, 38, 39, 40]; // 空格、Page Up/Down、Home、End、方向键
+            if (scrollKeys.includes(e.keyCode)) {
+                e.preventDefault();
+            }
+        });
+        
+        // 禁止触摸滑动
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault(); // 禁止多点触控
+            }
+        }, { passive: false });
+        
+        document.addEventListener('touchmove', function(e) {
+            e.preventDefault(); // 禁止触摸滑动
+        }, { passive: false });
+        
+        // 禁止拖拽滚动
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+        });
+    }
+    
+    // 显示练习模式退出按钮
+    function showPracticeExitButton() {
+        if (mode === MODE_PRACTICE) {
+            const exitBtn = document.getElementById('practice-exit-btn');
+            if (exitBtn) {
+                exitBtn.classList.add('show');
+            }
+        }
+    }
+    
+    // 隐藏练习模式退出按钮
+    function hidePracticeExitButton() {
+        const exitBtn = document.getElementById('practice-exit-btn');
+        if (exitBtn) {
+            exitBtn.classList.remove('show');
+        }
+    }
+    
+    // 退出练习模式
+    w.exitPracticeMode = function() {
+        if (mode === MODE_PRACTICE && _gameStart && !_gameOver) {
+            gameRestart();
+            hidePracticeExitButton();
+            showWelcomeLayer();
+        }
     }
 
     function getMode() {
@@ -126,10 +339,10 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
     w.changeSoundMode = function() {
         if (soundMode === 'on') {
             soundMode = 'off';
-            $('#sound').text(I18N['sound-off']);
+            $('#sound').text(getI18NText('sound-off', 'Sound Off'));
         } else {
             soundMode = 'on';
-            $('#sound').text(I18N['sound-on']);
+            $('#sound').text(getI18NText('sound-on', 'Sound On'));
         }
         cookie('soundMode', soundMode);
     }
@@ -144,8 +357,6 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             src: `./static/music/${currentSoundPreset}.mp3`,
             id: "tap"
         });
-        
-        console.log('音效预设已切换到:', currentSoundPreset);
     }
 
     // 图片预设切换功能
@@ -157,13 +368,11 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             // 使用自定义图片，清除预设样式
             clickBeforeStyle.html('');
             clickAfterStyle.html('');
-            console.log('已切换到自定义图片模式');
             return;
         }
         
         // 应用预设图片
         applyImagePreset(currentImagePreset);
-        console.log('图片预设已切换到:', currentImagePreset);
     }
 
     // 音符模式切换功能
@@ -182,8 +391,6 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         
         // 完全重启游戏
         gameRestart();
-        
-        console.log('音符模式已切换到:', currentNotePattern, '- 游戏已重新开始');
     }
 
     // 应用图片预设
@@ -210,8 +417,6 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
                 background-image: url(${afterImageUrl}) !important;
             }
         `);
-        
-        console.log('应用图片预设:', preset, beforeImageUrl, afterImageUrl);
     }
 
     // 按钮点击动效
@@ -314,7 +519,9 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
     }
 
     function modeToString(m) {
-        return m === MODE_NORMAL ? I18N['normal'] : (m === MODE_ENDLESS ? I18N['endless'] : I18N['practice']);
+        return m === MODE_NORMAL ? getI18NText('normal', 'Normal') : 
+               (m === MODE_ENDLESS ? getI18NText('endless', 'Endless') : 
+                getI18NText('practice', 'Practice'));
     }
 
     w.changeMode = function(m) {
@@ -418,8 +625,6 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         document.body.style.backgroundPosition = 'center';
         document.body.style.backgroundRepeat = 'no-repeat';
         document.body.style.backgroundAttachment = 'fixed';
-        
-        console.log('随机选择的背景图片:', selectedImage);
     }
 
     // 更新时间显示
@@ -442,8 +647,6 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         if (!_gameStart && !_gameOver) {
             _gameTimeNum = timeNum;
         }
-        
-        console.log('游戏时间设置为:', timeNum + '秒');
     }
 
     // 初始化时间滑块
@@ -464,8 +667,6 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
                 gameTimeInput.value = timeNum;
             }
             _gameSettingNum = timeNum;
-            
-            console.log('初始化时间设置为:', timeNum + '秒');
         }
     }
 
@@ -473,28 +674,174 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
     w.updateTimeDisplay = updateTimeDisplay;
     w.updateGameTime = updateGameTime;
 
-    // 音符生成状态变量
-    let _lastNotePosition = -1;  // 上一个音符位置
-    let _samePositionCount = 0;  // 连续相同位置计数
+    // 全局渲染状态追踪
+    let _globalLastNotePosition = -1;  // 全局最后一个音符位置
+    let _globalNoteSequence = [];      // 全局音符序列
+    let _renderingContext = {          // 渲染上下文
+        lastVisibleRow: -1,
+        lastNoteColumn: -1,
+        continuousCount: 0
+    };
+
+    // Combo里程碑追踪
+    let _lastComboMilestone = 0;       // 上一个combo里程碑
+
+    // 检查combo里程碑并触发金光脉冲
+    function checkComboMilestone(currentScore) {
+        const milestones = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+        
+        for (let milestone of milestones) {
+            if (currentScore >= milestone && _lastComboMilestone < milestone) {
+                _lastComboMilestone = milestone;
+                triggerGoldenPulse(milestone);
+                break; // 只触发一个里程碑
+            }
+        }
+    }
+
+    // 触发金光脉冲效果
+    function triggerGoldenPulse(comboCount) {
+        const pulseElement = document.getElementById('golden-pulse');
+        const pulseText = pulseElement.querySelector('.pulse-text');
+        
+        if (!pulseElement || !pulseText) return;
+        
+        // 更新文字内容
+        pulseText.textContent = `${comboCount} COMBO!`;
+        
+        // 根据combo数量设置不同的颜色样式
+        pulseText.className = 'pulse-text';
+        if (comboCount >= 200) {
+            pulseText.classList.add('combo-200');
+        } else if (comboCount >= 150) {
+            pulseText.classList.add('combo-150');
+        } else if (comboCount >= 100) {
+            pulseText.classList.add('combo-100');
+        } else {
+            pulseText.classList.add('combo-50');
+        }
+        
+        // 重置动画
+        pulseElement.classList.remove('active');
+        
+        // 强制重排，确保动画重新开始
+        pulseElement.offsetHeight;
+        
+        // 激活脉冲效果
+        pulseElement.classList.add('active');
+        
+        // 播放音效（如果开启）
+        if (soundMode === 'on') {
+            // 可以添加特殊的combo音效
+            createjs.Sound.play("tap");
+        }
+        
+        // 1.5秒后自动隐藏
+        setTimeout(() => {
+            pulseElement.classList.remove('active');
+        }, 1500);
+    }
+
+    // 查询上一个可见音符的位置
+    function getLastVisibleNotePosition() {
+        // 从当前播放位置往前查找最近的可见音符
+        for (let i = Math.max(0, _gameBBListIndex - 5); i < _gameBBList.length; i++) {
+            const note = _gameBBList[i];
+            const element = document.getElementById(note.id);
+            if (element && isElementVisible(element)) {
+                return {
+                    column: note.cell,
+                    globalIndex: i,
+                    element: element
+                };
+            }
+        }
+        
+        // 如果没找到可见音符，使用全局状态
+        return {
+            column: _globalLastNotePosition >= 0 ? _globalLastNotePosition : Math.floor(Math.random() * 4),
+            globalIndex: -1,
+            element: null
+        };
+    }
+
+    // 检查元素是否在可见区域
+    function isElementVisible(element) {
+        const rect = element.getBoundingClientRect();
+        const gameAreaRect = GameLayerBG.getBoundingClientRect();
+        const relativeTop = rect.top - gameAreaRect.top;
+        
+        // 检查是否在可见区域内（包括即将进入的区域）
+        return relativeTop >= -blockSize * 2 && relativeTop <= window.innerHeight + blockSize;
+    }
+
+    // 基于前一个位置生成下一个音符位置
+    function generateNextNoteBasedOnPrevious(prevColumn, continuousCount, pattern) {
+        switch (pattern) {
+            case 'stair':
+                return generateStairBasedOnPrevious(prevColumn, continuousCount);
+            case 'hold':
+                return generateHoldBasedOnPrevious(prevColumn, continuousCount);
+            default:
+                return generateDefaultBasedOnPrevious(prevColumn);
+        }
+    }
+
+    function generateStairBasedOnPrevious(prevColumn, continuousCount) {
+        if (prevColumn === -1) {
+            return Math.floor(Math.random() * 4);
+        }
+        
+        let nextColumn;
+        let attempts = 0;
+        
+        do {
+            nextColumn = Math.floor(Math.random() * 4);
+            attempts++;
+        } while (
+            nextColumn === prevColumn && 
+            continuousCount >= 2 && 
+            attempts < 10
+        );
+        
+        return nextColumn;
+    }
+
+    function generateHoldBasedOnPrevious(prevColumn, continuousCount) {
+        // 纵连模式：基于前一个位置生成连续音符
+        if (_holdNoteCount === 0) {
+            _holdPosition = prevColumn >= 0 ? prevColumn : Math.floor(Math.random() * 4);
+            _holdNoteCount = 4;
+        }
+        
+        const column = _holdPosition;
+        _holdNoteCount--;
+        
+        if (_holdNoteCount === 0) {
+            _holdPosition = -1;
+        }
+        
+        return column;
+    }
+
+    function generateDefaultBasedOnPrevious(prevColumn) {
+        // 默认模式：随机生成，但避免与前一个完全相同的连续出现
+        if (prevColumn === -1) {
+            return Math.floor(Math.random() * 4);
+        }
+        
+        // 30% 概率避免与前一个相同
+        let nextColumn = Math.floor(Math.random() * 4);
+        if (Math.random() < 0.3 && nextColumn === prevColumn) {
+            nextColumn = (nextColumn + 1) % 4;
+        }
+        
+        return nextColumn;
+    }
+
+    // 音符生成状态变量（保留用于兼容性）
     let _holdNoteCount = 0;      // 纵连模式计数器
     let _holdPosition = -1;      // 纵连模式位置
-
-    // 重置音符生成状态
-    function resetNoteGenerationState() {
-        _lastNotePosition = -1;
-        _samePositionCount = 0;
-        _holdNoteCount = 0;
-        _holdPosition = -1;
-        
-        console.log('音符生成状态已重置，当前模式:', currentNotePattern);
-    }
-
-    // 调试函数：显示当前音符序列
-    function debugNoteSequence() {
-        const sequence = _gameBBList.map((note, index) => `${index}: 列${note.cell}`).join(', ');
-        console.log('当前音符序列:', sequence);
-        console.log('下一个音符索引:', _gameBBListIndex);
-    }
 
     function gameInit() {
         createjs.Sound.registerSound({
@@ -536,13 +883,28 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         _gameBBList = [];
         _gameBBListIndex = 0;
         _gameScore = 0;
+        _gameBad = 0;
         _gameOver = false;
         _gameStart = false;
         _gameTimeNum = _gameSettingNum;
         _gameStartTime = 0;
         
         // 重置音符生成状态
-        resetNoteGenerationState();
+        _globalLastNotePosition = -1;
+        _globalNoteSequence = [];
+        _renderingContext = {
+            lastVisibleRow: -1,
+            lastNoteColumn: -1,
+            continuousCount: 0
+        };
+        _holdNoteCount = 0;
+        _holdPosition = -1;
+        
+        // 重置combo里程碑
+        _lastComboMilestone = 0;
+        
+        // 隐藏练习模式退出按钮
+        hidePracticeExitButton();
         
         // 清除所有音符的视觉状态
         for (let i = 0; i < GameLayer.length; i++) {
@@ -564,8 +926,6 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         
         // 更新界面
         updatePanel();
-        
-        console.log('游戏已完全重启，音符模式:', currentNotePattern);
     }
 
     function gameStart() {
@@ -575,6 +935,9 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         
         // 隐藏开始图片
         updateStartImage();
+        
+        // 显示练习模式退出按钮
+        showPracticeExitButton();
 
         // 主计时器每秒更新一次（用于时间递减）
         _gameTime = setInterval(timer, 1000);
@@ -586,9 +949,7 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         
         // 启动方块位置监控计时器（每100ms检查一次）
         _blockPositionMonitor = setInterval(monitorCurrentBlockPosition, 100);
-        
-        // 调试：显示当前音符序列
-        debugNoteSequence();
+
     }
 
     function getCPS() {
@@ -603,7 +964,7 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         _gameTimeNum--;
         _gameStartTime++;
         if (mode === MODE_NORMAL && _gameTimeNum <= 0) {
-            GameTimeLayer.innerHTML = I18N['time-up'] + '!';
+            GameTimeLayer.innerHTML = getI18NText('time-up', 'Time Up') + '!';
             gameOver();
             GameLayerBG.className += ' flash';
             if (soundMode === 'on') {
@@ -629,7 +990,7 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             const progressHtml = createCPSProgressBar(cps);
             GameTimeLayer.innerHTML = progressHtml;
         } else {
-            GameTimeLayer.innerHTML = `SCORE:${_gameScore}`;
+            GameTimeLayer.innerHTML = `SCORE:<span class="score-correct">${_gameScore}</span>/<span class="score-bad">${_gameBad}</span>`;
         }
     }
 
@@ -701,6 +1062,9 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             _blockPositionMonitor = null;
         }
         
+        // 隐藏练习模式退出按钮
+        hidePracticeExitButton();
+        
         let cps = getCPS();
         updatePanel();
         setTimeout(function () {
@@ -752,7 +1116,7 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
 
     // 创建CPS进度条
     function createCPSProgressBar(cps) {
-        const maxCPS = 15;
+        const maxCPS = 11;
         const percentage = Math.min(100, (cps / maxCPS) * 100);
         const colorClass = getProgressColorClass(percentage);
         
@@ -779,27 +1143,43 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         _clearttClsReg = / t{1,2}\d+| bad/;
 
     function refreshGameLayer(box, loop, offset) {
-        // 重置当前层的音符生成状态（仅用于该层）
+        // 1. 查询上一个音符的结束位置
+        const lastNoteInfo = getLastVisibleNotePosition();
+        let startColumn = lastNoteInfo.column;
+        let continuousCount = _renderingContext.continuousCount;
+        
+        // 2. 生成连续的音符序列
+        const rows = Math.floor(box.children.length / 4);
         let layerNotePositions = [];
         
-        // 为每一行生成音符位置
-        const rows = Math.floor(box.children.length / 4);
         for (let row = 0; row < rows; row++) {
             const basePosition = row * 4;
-            let notePosition;
             
-            if (row === 0) {
-                // 第一行使用全局生成逻辑
-                notePosition = generateNotePosition(loop);
-            } else {
-                // 后续行基于前一个位置生成
-                notePosition = generateNextNotePosition(basePosition);
-            }
+            // 基于上一个音符位置生成下一个
+            const nextColumn = generateNextNoteBasedOnPrevious(
+                startColumn, 
+                continuousCount,
+                currentNotePattern
+            );
             
+            const notePosition = basePosition + nextColumn;
             layerNotePositions.push(notePosition);
+            
+            // 更新状态为下一次生成做准备
+            startColumn = nextColumn;
+            continuousCount++;
+            
+            // 添加到全局序列追踪
+            _globalNoteSequence.push({
+                position: notePosition,
+                column: nextColumn,
+                row: row,
+                timestamp: Date.now(),
+                layerId: box.id
+            });
         }
         
-        // 应用生成的音符位置
+        // 3. 应用生成的音符位置
         for (let j = 0; j < box.children.length; j++) {
             let r = box.children[j], rstyle = r.style;
             rstyle.left = (j % 4) * blockSize + 'px';
@@ -823,6 +1203,7 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             }
         }
         
+        // 4. 设置层位置
         if (loop) {
             box.style.webkitTransitionDuration = '0ms';
             box.style.display = 'none';
@@ -838,6 +1219,10 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             box.style[transform] = 'translate3D(0,' + box.y + 'px,0)';
         }
         box.style[transitionDuration] = '150ms';
+        
+        // 5. 更新全局渲染状态
+        _renderingContext.continuousCount = continuousCount;
+        _globalLastNotePosition = startColumn;
     }
 
     // 生成初始音符位置
@@ -979,6 +1364,7 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
     }
 
     function gameLayerMoveNextRow() {
+        if(_gameBBListIndex <= 1) return;
         // 获取当前需要按的方块信息
         const currentNote = _gameBBList[_gameBBListIndex];
         if (!currentNote) return;
@@ -1001,7 +1387,8 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         
         // 如果当前方块太靠上，增加移动距离
         if (currentPosition < targetPosition - blockSize * 2) {
-            moveDistance = blockSize * 1.5; // 加速移动
+            moveDistance = blockSize * 1.2; // 加速移动
+            moveDisrance = min(moveDistance, 2);
         }
         // 如果当前方块太靠下，减少移动距离
         else if (currentPosition > targetPosition) {
@@ -1011,11 +1398,6 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         // 应用弹性移动效果
         for (let i = 0; i < GameLayer.length; i++) {
             let g = GameLayer[i];
-            
-            // 设置过渡动画
-            g.style[transitionDuration] = '300ms';
-            g.style.transitionTimingFunction = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // 弹性缓动
-            
             g.y += moveDistance;
             
             if (g.y > blockSize * (Math.floor(g.children.length / 4))) {
@@ -1023,6 +1405,10 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             } else {
                 g.style[transform] = 'translate3D(0,' + g.y + 'px,0)';
             }
+            // 设置过渡动画
+            g.style[transitionDuration] = '300ms';
+            g.style.transitionTimingFunction = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // 弹性缓动
+            
         }
         
         // 重置过渡动画（避免影响其他操作）
@@ -1063,6 +1449,9 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             _gameBBListIndex++;
             _gameScore++;
 
+            // 检查是否达到combo里程碑
+            checkComboMilestone(_gameScore);
+
             updatePanel();
 
             gameLayerMoveNextRow();
@@ -1070,6 +1459,7 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             if (soundMode === 'on') {
                 createjs.Sound.play("err");
             }
+            _gameBad++;
             tar.classList.add('bad');
             if (mode === MODE_PRACTICE) {
                 setTimeout(() => {
@@ -1175,16 +1565,16 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             let date2 = new Date();
             deviationTime = (date2.getTime() - _date1.getTime())
             if (!legalDeviationTime()) {
-                return I18N['time-over'] + ((deviationTime / 1000) - _gameSettingNum).toFixed(2) + 's';
+                return getI18NText('time-over', 'Time Over') + ((deviationTime / 1000) - _gameSettingNum).toFixed(2) + 's';
             }
             SubmitResults();
         }
 
-        if (cps <= 5) return I18N['text-level-1'];
-        if (cps <= 8) return I18N['text-level-2'];
-        if (cps <= 10)  return I18N['text-level-3'];
-        if (cps <= 15) return I18N['text-level-4'];
-        return I18N['text-level-5'];
+        if (cps <= 5) return getI18NText('text-level-1', 'Level 1');
+        if (cps <= 8) return getI18NText('text-level-2', 'Level 2');
+        if (cps <= 10) return getI18NText('text-level-3', 'Level 3');
+        if (cps <= 15) return getI18NText('text-level-4', 'Level 4');
+        return getI18NText('text-level-5', 'Level 5');
     }
 
     function toStr(obj) {
@@ -1250,8 +1640,6 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         if (currentImagePreset !== 'custom') {
             applyImagePreset(currentImagePreset);
         }
-        
-        console.log('初始化设置完成 - 音效预设:', currentSoundPreset, '图片预设:', currentImagePreset, '音符模式:', currentNotePattern);
     }
 
     w.show_btn = function() {
@@ -1262,14 +1650,12 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
     w.show_setting = function() {
         $('#btn_group,#desc').css('display', 'none')
         $('#setting').css('display', 'block')
-        $('#sound').text(soundMode === 'on' ? I18N['sound-on'] : I18N['sound-off']);
+        $('#sound').text(soundMode === 'on' ? getI18NText('sound-on', 'Sound On') : getI18NText('sound-off', 'Sound Off'));
         
         // 确保预设选择器显示正确的值
         $('#soundPreset').val(currentSoundPreset);
         $('#imagePreset').val(currentImagePreset);
         $('#notePattern').val(currentNotePattern);
-        
-        console.log('显示设置界面 - 当前音效预设:', currentSoundPreset, '当前图片预设:', currentImagePreset, '当前音符模式:', currentNotePattern);
     }
 
     w.save_cookie = function() {
@@ -1300,8 +1686,6 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
             cookie('notePattern', notePatternValue, 100);
             currentNotePattern = notePatternValue;
         }
-        
-        console.log('保存设置 - 音效预设:', currentSoundPreset, '图片预设:', currentImagePreset, '音符模式:', currentNotePattern);
         
         initSetting();
     }

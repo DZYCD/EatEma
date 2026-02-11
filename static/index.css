@@ -269,7 +269,7 @@ body::before {
     width: 100%;
     text-align: center;
     color: var(--gold-light);
-    font-size: clamp(2rem, 4vw, 4rem);
+    font-size: clamp(1.5rem, 3vw, 3rem); /* 降低字号 */
     font-family: var(--font-serif);
     font-weight: 700;
     text-shadow: 
@@ -278,11 +278,12 @@ body::before {
         3px 3px 6px rgba(0, 0, 0, 0.9);
     overflow: hidden;
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* 改为水平排列 */
     align-items: center;
     justify-content: center;
     gap: var(--space-sm);
     letter-spacing: 3px;
+    white-space: nowrap; /* 防止换行 */
 }
 
 /* ========== 游戏背景层 ========== */
@@ -1671,4 +1672,1052 @@ button[data-i18n="isom"]:active {
         0 0 50px rgba(212, 175, 55, 0.4),
         0 8px 25px rgba(0, 0, 0, 0.5);
     transform: translateY(-3px);
+}
+
+/* ========== 加载进度条样式 ========== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        rgba(20, 15, 10, 0.95) 0%, 
+        rgba(40, 30, 20, 0.95) 50%, 
+        rgba(20, 15, 10, 0.95) 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.5s ease-out;
+}
+
+.loading-container {
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    padding: 2rem;
+}
+
+.loading-logo {
+    margin-bottom: 2rem;
+}
+
+.loading-emoji {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.loader-emoji {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    animation: emojiFloat 2s ease-in-out infinite alternate,
+               emojiRotate 4s linear infinite;
+    filter: drop-shadow(0 0 15px var(--gold-glow));
+}
+
+.loading-title {
+    font-size: var(--font-3xl);
+    color: var(--gold-light);
+    font-weight: bold;
+    text-shadow: 
+        0 0 10px var(--gold-glow),
+        0 0 20px var(--gold-glow),
+        0 0 30px var(--gold-glow);
+    margin-bottom: 1rem;
+    animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+.loading-progress {
+    margin-bottom: 2rem;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    border: 1px solid var(--gold-dark);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.3),
+        0 0 10px var(--gold-glow);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, 
+        var(--gold-dark) 0%, 
+        var(--gold-light) 50%, 
+        var(--gold-dark) 100%);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.4) 50%, 
+        transparent 100%);
+    animation: shimmer 1.5s infinite;
+}
+
+.loading-text {
+    color: var(--text-secondary);
+    font-size: var(--font-base);
+    margin-bottom: 0.5rem;
+    min-height: 1.5em;
+}
+
+.loading-percentage {
+    color: var(--gold-light);
+    font-size: var(--font-lg);
+    font-weight: bold;
+    text-shadow: 0 0 10px var(--gold-glow);
+}
+
+.loading-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.loading-dots span {
+    width: 8px;
+    height: 8px;
+    background: var(--gold-light);
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+    box-shadow: 0 0 10px var(--gold-glow);
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots span:nth-child(3) { animation-delay: 0s; }
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes titleGlow {
+    from { 
+        text-shadow: 
+            0 0 10px var(--gold-glow),
+            0 0 20px var(--gold-glow),
+            0 0 30px var(--gold-glow);
+    }
+    to { 
+        text-shadow: 
+            0 0 15px var(--gold-glow),
+            0 0 25px var(--gold-glow),
+            0 0 35px var(--gold-glow),
+            0 0 45px var(--gold-light);
+    }
+}
+
+@keyframes emojiFloat {
+    from { 
+        transform: translateY(0px) scale(1);
+    }
+    to { 
+        transform: translateY(-10px) scale(1.05);
+    }
+}
+
+@keyframes emojiRotate {
+    from { 
+        transform: rotate(0deg);
+    }
+    to { 
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+@keyframes bounce {
+    0%, 80%, 100% { 
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% { 
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* 加载完成后的淡出动画 */
+.loading-overlay.fade-out {
+    animation: fadeOut 0.8s ease-out forwards;
+}
+
+@keyframes fadeOut {
+    from { 
+        opacity: 1;
+        transform: scale(1);
+    }
+    to { 
+        opacity: 0;
+        transform: scale(1.05);
+    }
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+    .loading-container {
+        padding: 1.5rem;
+    }
+    
+    .loading-title {
+        font-size: var(--font-2xl);
+    }
+    
+    .loader-emoji {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .progress-bar-container {
+        height: 6px;
+    }
+}
+/* ========== 左上角导航按钮样式 ========== */
+.nav-buttons {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
+    opacity: 0;
+    animation: navFadeIn 1s ease-out 2s forwards; /* 延迟2秒显示，避免与加载进度条冲突 */
+}
+
+.nav-btn {
+    width: 48px;
+    height: 48px;
+    background: var(--bg-darker);
+    border: 2px solid var(--gold-dark);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    backdrop-filter: blur(10px);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(212, 175, 55, 0.2) 50%, 
+        transparent 100%);
+    transition: left 0.5s ease;
+}
+
+.nav-btn:hover::before {
+    left: 100%;
+}
+
+.nav-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    border-color: var(--gold-light);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.4),
+        0 0 20px var(--gold-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.nav-btn:active {
+    transform: translateY(0) scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--gold-light);
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 4px var(--gold-glow));
+}
+
+.nav-btn:hover .nav-icon {
+    fill: var(--white-primary);
+    filter: drop-shadow(0 0 8px var(--gold-light));
+    transform: scale(1.1);
+}
+
+/* 特定按钮的悬停颜色 */
+.github-btn:hover {
+    border-color: #333;
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(51, 51, 51, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.github-btn:hover .nav-icon {
+    fill: #333;
+    filter: drop-shadow(0 0 8px #333);
+}
+
+.home-btn:hover {
+    border-color: #4CAF50;
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(76, 175, 80, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.home-btn:hover .nav-icon {
+    fill: #4CAF50;
+    filter: drop-shadow(0 0 8px #4CAF50);
+}
+
+.bilibili-btn:hover {
+    border-color: #00A1D6;
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(0, 161, 214, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.bilibili-btn:hover .nav-icon {
+    fill: #00A1D6;
+    filter: drop-shadow(0 0 8px #00A1D6);
+}
+
+/* 加载完成后显示导航按钮 */
+@keyframes navFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+    .nav-buttons {
+        top: 15px;
+        left: 15px;
+        gap: 8px;
+    }
+    
+    .nav-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+    }
+    
+    .nav-icon {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-buttons {
+        top: 10px;
+        left: 10px;
+        gap: 6px;
+    }
+    
+    .nav-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+    }
+    
+    .nav-icon {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* 确保导航按钮在加载进度条之下 */
+.loading-overlay {
+    z-index: 9999;
+}
+
+.nav-buttons {
+    z-index: 1000;
+}
+/* ========== 图片按钮样式 ========== */
+.btn-image-btn {
+    background: var(--bg-darker) !important;
+    border: 2px solid var(--gold-dark) !important;
+    border-radius: 12px !important;
+    padding: 8px 12px !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.btn-image-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(212, 175, 55, 0.2) 50%, 
+        transparent 100%);
+    transition: left 0.5s ease;
+    z-index: 1;
+}
+
+.btn-image-btn:hover::before {
+    left: 100%;
+}
+
+.btn-image-btn:hover {
+    transform: translateY(-2px) scale(1.05) !important;
+    border-color: var(--gold-light) !important;
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.4),
+        0 0 20px var(--gold-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.btn-image-btn:active {
+    transform: translateY(0) scale(0.95) !important;
+    transition: transform 0.1s ease !important;
+}
+
+.btn-image {
+    max-height: 32px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(1) contrast(1.1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.btn-image-btn:hover .btn-image {
+    filter: brightness(1.1) contrast(1.2) drop-shadow(0 0 8px var(--gold-light));
+    transform: scale(1.05);
+}
+
+/* 特定的 witchtrail 按钮样式 */
+.witchtrail-btn {
+    min-width: 120px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.witchtrail-btn:hover {
+    /* 为魔法少女主题添加特殊的紫色光效 */
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(138, 43, 226, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    border-color: #8A2BE2 !important;
+}
+
+.witchtrail-btn:hover .btn-image {
+    filter: brightness(1.1) contrast(1.2) drop-shadow(0 0 8px #8A2BE2);
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+    .btn-image {
+        max-height: 28px;
+    }
+    
+    .witchtrail-btn {
+        min-width: 100px;
+        height: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-image {
+        max-height: 24px;
+    }
+    
+    .witchtrail-btn {
+        min-width: 90px;
+        height: 40px;
+    }
+}
+/* ========== 里程碑标记样式 ========== */
+.milestone-marker {
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        var(--gold-light) 20%, 
+        var(--gold-light) 80%, 
+        transparent 100%);
+    box-shadow: 
+        0 0 10px var(--gold-glow),
+        0 0 20px var(--gold-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    position: relative;
+    animation: milestoneGlow 2s ease-in-out infinite alternate;
+    overflow: visible;
+}
+
+.milestone-marker::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -4px;
+    right: -4px;
+    bottom: -2px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(212, 175, 55, 0.3) 50%, 
+        transparent 100%);
+    border-radius: 4px;
+    z-index: -1;
+}
+
+.milestone-marker::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.6) 50%, 
+        transparent 100%);
+    animation: milestoneShimmer 3s infinite;
+}
+
+.milestone-text {
+    position: absolute;
+    right: -30px;
+    top: -12px;
+    background: var(--gold-dark);
+    color: var(--white-primary);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    border: 2px solid var(--gold-light);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        0 0 10px var(--gold-glow);
+    z-index: 15;
+    min-width: 20px;
+    text-align: center;
+    animation: milestoneTextPulse 2s ease-in-out infinite alternate;
+}
+
+.milestone-text::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid var(--gold-light);
+}
+
+/* 里程碑动画效果 */
+@keyframes milestoneGlow {
+    from {
+        box-shadow: 
+            0 0 10px var(--gold-glow),
+            0 0 20px var(--gold-glow),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+    to {
+        box-shadow: 
+            0 0 15px var(--gold-glow),
+            0 0 30px var(--gold-glow),
+            0 0 40px var(--gold-light),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+}
+
+@keyframes milestoneShimmer {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: 100%; }
+}
+
+@keyframes milestoneTextPulse {
+    from {
+        transform: scale(1);
+        box-shadow: 
+            0 2px 8px rgba(0, 0, 0, 0.3),
+            0 0 10px var(--gold-glow);
+    }
+    to {
+        transform: scale(1.1);
+        box-shadow: 
+            0 4px 12px rgba(0, 0, 0, 0.4),
+            0 0 15px var(--gold-glow),
+            0 0 25px var(--gold-light);
+    }
+}
+
+/* 特殊里程碑标记（每50个音符） */
+.milestone-marker.major-milestone {
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        #FFD700 10%,
+        #FFA500 50%,
+        #FFD700 90%,
+        transparent 100%);
+    height: 6px !important;
+    animation: majorMilestoneGlow 1.5s ease-in-out infinite alternate;
+}
+
+.milestone-marker.major-milestone .milestone-text {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    font-size: 14px;
+    padding: 4px 10px;
+    border: 2px solid #FFD700;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        0 0 20px #FFD700;
+}
+
+@keyframes majorMilestoneGlow {
+    from {
+        box-shadow: 
+            0 0 15px #FFD700,
+            0 0 30px #FFD700,
+            inset 0 2px 0 rgba(255, 255, 255, 0.4);
+    }
+    to {
+        box-shadow: 
+            0 0 25px #FFD700,
+            0 0 50px #FFD700,
+            0 0 75px #FFA500,
+            inset 0 2px 0 rgba(255, 255, 255, 0.6);
+    }
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+    .milestone-text {
+        font-size: 10px;
+        padding: 1px 6px;
+        right: -25px;
+        top: -10px;
+    }
+    
+    .milestone-marker.major-milestone .milestone-text {
+        font-size: 12px;
+        padding: 2px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .milestone-text {
+        font-size: 8px;
+        padding: 1px 4px;
+        right: -20px;
+        top: -8px;
+    }
+    
+    .milestone-marker {
+        height: 3px !important;
+    }
+    
+    .milestone-marker.major-milestone {
+        height: 4px !important;
+    }
+}
+/* ========== 金光脉冲效果样式 ========== */
+.golden-pulse {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    pointer-events: none;
+    z-index: 2000;
+    display: none;
+    overflow: hidden;
+}
+
+.pulse-wave {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(212, 175, 55, 0.1) 20%,
+        rgba(212, 175, 55, 0.8) 50%,
+        rgba(255, 215, 0, 1) 60%,
+        rgba(212, 175, 55, 0.8) 70%,
+        rgba(212, 175, 55, 0.1) 80%,
+        transparent 100%);
+    animation: goldenWave 1.5s ease-out forwards;
+}
+
+.pulse-wave-1 {
+    animation-delay: 0s;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(212, 175, 55, 0.2) 20%,
+        rgba(255, 215, 0, 0.9) 50%,
+        rgba(255, 223, 0, 1) 60%,
+        rgba(255, 215, 0, 0.9) 70%,
+        rgba(212, 175, 55, 0.2) 80%,
+        transparent 100%);
+}
+
+.pulse-wave-2 {
+    animation-delay: 0.2s;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(255, 215, 0, 0.1) 20%,
+        rgba(255, 223, 0, 0.6) 50%,
+        rgba(255, 235, 59, 0.8) 60%,
+        rgba(255, 223, 0, 0.6) 70%,
+        rgba(255, 215, 0, 0.1) 80%,
+        transparent 100%);
+}
+
+.pulse-wave-3 {
+    animation-delay: 0.4s;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(255, 235, 59, 0.05) 20%,
+        rgba(255, 245, 157, 0.4) 50%,
+        rgba(255, 249, 196, 0.6) 60%,
+        rgba(255, 245, 157, 0.4) 70%,
+        rgba(255, 235, 59, 0.05) 80%,
+        transparent 100%);
+}
+
+.pulse-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: var(--font-2xl);
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 
+        0 0 10px #FFD700,
+        0 0 20px #FFD700,
+        0 0 30px #FFD700,
+        0 0 40px #FFA500;
+    opacity: 0;
+    animation: pulseTextAppear 1.5s ease-out forwards;
+    letter-spacing: 2px;
+    font-family: var(--font-serif);
+}
+
+/* 金光波浪动画 */
+@keyframes goldenWave {
+    0% {
+        left: -100%;
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        left: 100%;
+        opacity: 0;
+    }
+}
+
+/* 文字出现动画 */
+@keyframes pulseTextAppear {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    40% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+}
+
+/* 激活状态 */
+.golden-pulse.active {
+    display: block;
+    animation: pulseContainer 1.5s ease-out forwards;
+}
+
+@keyframes pulseContainer {
+    0% {
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* 不同的combo数字样式 */
+.pulse-text.combo-50 {
+    color: #FFD700;
+    text-shadow: 
+        0 0 10px #FFD700,
+        0 0 20px #FFD700,
+        0 0 30px #FFD700,
+        0 0 40px #FFA500;
+}
+
+.pulse-text.combo-100 {
+    color: #FF6B35;
+    text-shadow: 
+        0 0 10px #FF6B35,
+        0 0 20px #FF6B35,
+        0 0 30px #FF6B35,
+        0 0 40px #FF4500;
+}
+
+.pulse-text.combo-150 {
+    color: #FF1744;
+    text-shadow: 
+        0 0 10px #FF1744,
+        0 0 20px #FF1744,
+        0 0 30px #FF1744,
+        0 0 40px #DC143C;
+}
+
+.pulse-text.combo-200 {
+    color: #E91E63;
+    text-shadow: 
+        0 0 10px #E91E63,
+        0 0 20px #E91E63,
+        0 0 30px #E91E63,
+        0 0 40px #C2185B;
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+    .golden-pulse {
+        height: 80px;
+    }
+    
+    .pulse-text {
+        font-size: var(--font-xl);
+        letter-spacing: 1px;
+    }
+}
+
+@media (max-width: 480px) {
+    .golden-pulse {
+        height: 60px;
+    }
+    
+    .pulse-text {
+        font-size: var(--font-lg);
+        letter-spacing: 0.5px;
+    }
+}
+/* ========== 练习模式分数样式 ========== */
+.score-correct {
+    color: inherit; /* 继承父元素颜色 */
+    font-size: inherit; /* 继承父元素字体大小 */
+}
+
+.score-bad {
+    color: #ff4444; /* 红色 */
+    font-size: 0.5em; /* 字号缩小一倍 */
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(255, 68, 68, 0.6); /* 红色发光效果 */
+}
+/* ========== 禁止屏幕滚动 ========== */
+html, body {
+    overflow: hidden !important; /* 禁止滚动条 */
+    height: 100vh !important; /* 固定高度为视口高度 */
+    width: 100vw !important; /* 固定宽度为视口宽度 */
+    position: fixed !important; /* 固定定位，防止滚动 */
+    top: 0 !important;
+    left: 0 !important;
+}
+
+/* 防止触摸滑动 */
+body {
+    touch-action: none !important; /* 禁止所有触摸手势 */
+    -webkit-overflow-scrolling: auto !important; /* 禁用iOS弹性滚动 */
+    overscroll-behavior: none !important; /* 禁用过度滚动行为 */
+}
+/* ========== 练习模式退出按钮样式 ========== */
+.practice-exit-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    background: var(--bg-darker);
+    border: 2px solid var(--gold-dark);
+    border-radius: 12px;
+    display: none; /* 默认隐藏 */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    backdrop-filter: blur(10px);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    z-index: 1500;
+    opacity: 0.8;
+}
+
+.practice-exit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(212, 175, 55, 0.2) 50%, 
+        transparent 100%);
+    transition: left 0.5s ease;
+}
+
+.practice-exit-btn:hover::before {
+    left: 100%;
+}
+
+.practice-exit-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    border-color: var(--gold-light);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.4),
+        0 0 20px var(--gold-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    opacity: 1;
+}
+
+.practice-exit-btn:active {
+    transform: translateY(0) scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+.exit-icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--gold-light);
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 4px var(--gold-glow));
+}
+
+.practice-exit-btn:hover .exit-icon {
+    fill: var(--white-primary);
+    filter: drop-shadow(0 0 8px var(--gold-light));
+    transform: scale(1.1);
+}
+
+/* 显示状态 */
+.practice-exit-btn.show {
+    display: flex;
+    animation: exitBtnFadeIn 0.5s ease-out forwards;
+}
+
+/* 淡入动画 */
+@keyframes exitBtnFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 0.8;
+        transform: translateX(0);
+    }
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+    .practice-exit-btn {
+        top: 15px;
+        right: 15px;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .exit-icon {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .practice-exit-btn {
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+    }
+    
+    .exit-icon {
+        width: 18px;
+        height: 18px;
+    }
 }
