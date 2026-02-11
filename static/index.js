@@ -903,6 +903,9 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         // 重置combo里程碑
         _lastComboMilestone = 0;
         
+        // 重置最终CPS值
+        _finalCPS = 0;
+        
         // 隐藏练习模式退出按钮
         hidePracticeExitButton();
         
@@ -1521,7 +1524,13 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
         return deviationTime < (_gameSettingNum + 3) * 1000;
     }
 
+    // 存储结算时的CPS值
+    let _finalCPS = 0;
+    
     function showGameScoreLayer(cps) {
+        // 保存最终的CPS值供分享使用
+        _finalCPS = cps;
+        
         let l = $('#GameScoreLayer');
         let c = $(`#${_gameBBList[_gameBBListIndex - 1].id}`).attr('class').match(_ttreg)[1];
         let score = (mode === MODE_ENDLESS ? cps : _gameScore);
@@ -1569,16 +1578,17 @@ const MODE_NORMAL = 1, MODE_ENDLESS = 2, MODE_PRACTICE = 3;
     
     // 分享游戏结果
     w.shareResult = function() {
-        const cps = getCPS();
+        // 使用结算时保存的CPS值，确保与显示的一致
+        const cps = _finalCPS;
         let shareText = '';
         
         if (mode === MODE_NORMAL) {
             // 普通模式：我在**秒内吃掉了***个艾玛，每秒钟吃掉了**（CPS）个艾玛！
             const gameTime = _gameSettingNum;
-            shareText = `我在${gameTime}秒内吃掉了${_gameScore}个艾玛，每秒钟吃掉了${cps.toFixed(2)}（CPS）个艾玛！你也来试试吧！https://dzycd.github.io/EatEma/`;
+            shareText = `我在${gameTime}秒内吃掉了${_gameScore}个艾玛，每秒钟吃掉了${cps.toFixed(2)}个艾玛！你也来试试吧！https://dzycd.github.io/EatEma/`;
         } else if (mode === MODE_ENDLESS) {
             // 无尽模式：我在吃掉了***个艾玛，每秒钟吃掉了**（CPS）个艾玛！
-            shareText = `我吃掉了${_gameScore}个艾玛，每秒钟吃掉了${cps.toFixed(2)}（CPS）个艾玛！你也来试试吧！https://dzycd.github.io/EatEma/`;
+            shareText = `我吃掉了${_gameScore}个艾玛，每秒钟吃掉了${cps.toFixed(2)}个艾玛！你也来试试吧！https://dzycd.github.io/EatEma/`;
         } else {
             // 练习模式不显示分享按钮，但以防万一
             shareText = `我在练习模式中吃掉了${_gameScore}个艾玛！你也来试试吧！https://dzycd.github.io/EatEma/`;
